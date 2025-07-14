@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Hackathon 2025 Registration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        
+        h1 a {
+            text-decoration: none;
+            color: #007bff;
+        }
+        
+        form {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 10px;
+        }
+        
+        input {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        button {
+            padding: 10px;
+            margin-top: 10px;
+            background: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+        
+        #participants {
+            margin-top: 30px;
+            display: none;
+            width: 300px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        #participants ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        #participants li {
+            padding: 5px 0;
+        }
+        
+        #passwordPrompt {
+            display: none;
+            margin-top: 10px;
+        }
+        
+        #notification {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1><a href="https://example.com" target="_blank">Hackathon 2025</a></h1>
+    <form id="regForm">
+        <input type="text" id="name" placeholder="Name" required />
+        <input type="email" id="email" placeholder="Email ID" required />
+        <input type="text" id="regNumber" placeholder="Register Number" required />
+        <button type="submit">Register</button>
+    </form>
+    <button id="viewBtn">View Participant</button>
+    <div id="participants">
+        <h3>Participants</h3>
+        <ul id="participantList"></ul>
+        <button id="downloadBtn">Download</button>
+        <div id="passwordPrompt">
+            <input type="password" id="password" placeholder="Enter Password" />
+            <button id="confirmPassword">Confirm</button>
+        </div>
+        <div id="downloadOptions" style="display: none;">
+            <button id="downloadCSV">Download CSV</button>
+        </div>
+        <div id="notification"></div>
+    </div>
+    <script>
+        const regForm = document.getElementById('regForm');
+        const viewBtn = document.getElementById('viewBtn');
+        const participantsDiv = document.getElementById('participants');
+        const participantList = document.getElementById('participantList');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const passwordPrompt = document.getElementById('passwordPrompt');
+        const confirmPassword = document.getElementById('confirmPassword');
+        const downloadOptions = document.getElementById('downloadOptions');
+        const notification = document.getElementById('notification');
+        const downloadCSV = document.getElementById('downloadCSV');
+
+        const participants = [];
+
+        regForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const regNumber = document.getElementById('regNumber').value;
+            participants.push({
+                name,
+                email,
+                regNumber
+            });
+            regForm.reset();
+            alert('Registered Successfully!');
+        });
+
+        viewBtn.addEventListener('click', function() {
+            participantList.innerHTML = '';
+            participants.forEach(p => {
+                const li = document.createElement('li');
+                li.textContent = `${p.name} | ${p.email} | ${p.regNumber}`;
+                participantList.appendChild(li);
+            });
+            participantsDiv.style.display = 'block';
+        });
+
+        downloadBtn.addEventListener('click', function() {
+            passwordPrompt.style.display = 'block';
+        });
+
+        confirmPassword.addEventListener('click', function() {
+            const password = document.getElementById('password').value;
+            if (password === 'admin') {
+                downloadOptions.style.display = 'block';
+                notification.textContent = '';
+            } else {
+                notification.textContent = 'Incorrect Password';
+                downloadOptions.style.display = 'none';
+            }
+        });
+
+        downloadCSV.addEventListener('click', function() {
+            if (participants.length === 0) {
+                alert('No participants to download');
+                return;
+            }
+            let csvContent = 'Name,Email ID,Register Number\n';
+            participants.forEach(p => {
+                csvContent += `${p.name},${p.email},${p.regNumber}\n`;
+            });
+            const blob = new Blob([csvContent], {
+                type: 'text/csv'
+            });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'participants.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            passwordPrompt.style.display = 'none';
+            downloadOptions.style.display = 'none';
+        });
+    </script>
+</body>
+
+</html>
