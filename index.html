@@ -8,69 +8,60 @@
         body {
             font-family: Arial, sans-serif;
             background: #f5f5f5;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
+            text-align: center;
+            padding-top: 50px;
+        }
+        
+        form,
+        #participants {
+            background: #fff;
+            padding: 20px;
+            margin: auto;
+            width: 320px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        input,
+        button,
+        a {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        input,
+        button {
+            border: 1px solid #ccc;
+        }
+        
+        button,
+        a {
+            background-color: #007bff;
+            color: #fff;
+            text-decoration: none;
+            display: inline-block;
+            cursor: pointer;
+            border: none;
             text-align: center;
         }
         
-        h1 a {
-            text-decoration: none;
-            color: #007bff;
-        }
-        
-        form {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 300px;
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 10px;
-        }
-        
-        input {
-            margin: 10px 0;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        
-        button {
-            padding: 10px;
-            margin-top: 10px;
-            background: #007bff;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        
-        button:hover {
-            background: #0056b3;
+        button:hover,
+        a:hover {
+            background-color: #0056b3;
         }
         
         #participants {
-            margin-top: 30px;
             display: none;
-            width: 400px;
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
         }
         
-        #participants ul {
-            list-style: none;
-            padding: 0;
+        ul {
             text-align: left;
-        }
-        
-        #participants li {
-            padding: 5px 0;
+            padding: 0;
+            list-style: none;
         }
         
         #passwordPrompt {
@@ -82,107 +73,112 @@
             color: red;
             margin-top: 10px;
         }
+        
+        #regStatus {
+            margin-top: 10px;
+            height: 1.2em;
+        }
     </style>
 </head>
 
 <body>
-    <h1><a href="https://example.com" target="_blank">Hackathon 2025</a></h1>
+    <h1>Hackathon 2025 Registration</h1>
+
     <form id="regForm">
-        <input type="text" id="name" placeholder="Name" required />
-        <input type="email" id="email" placeholder="Email ID" required />
-        <input type="text" id="regNumber" placeholder="Register Number" required />
+        <input type="text" name="name" id="name" placeholder="Name" required />
+        <input type="email" name="email" id="email" placeholder="Email ID" required />
+        <input type="text" name="regNumber" id="regNumber" placeholder="Register Number" required />
         <button type="submit">Register</button>
     </form>
+
+    <div id="regStatus"></div>
+
     <button id="viewBtn">View Participants</button>
+
     <div id="participants">
-        <h3>Participants (<span id="totalCount">0</span>)</h3>
-        <ul id="participantList"></ul>
+        <h3>Participants (<span id="count">0</span>)</h3>
+        <ul id="list"></ul>
+
         <button id="downloadBtn">Download</button>
+
         <div id="passwordPrompt">
-            <input type="password" id="password" placeholder="Enter Password" />
+            <input type="password" id="password" placeholder="Enter password" />
             <button id="confirmPassword">Confirm</button>
         </div>
+
         <div id="downloadOptions" style="display: none;">
-            <button id="downloadCSV">Download CSV</button>
+            <a id="downloadLink" href="#">Download CSV</a>
         </div>
+
         <div id="notification"></div>
     </div>
+
     <script>
-        const regForm = document.getElementById('regForm');
-        const viewBtn = document.getElementById('viewBtn');
-        const participantsDiv = document.getElementById('participants');
-        const participantList = document.getElementById('participantList');
-        const downloadBtn = document.getElementById('downloadBtn');
-        const passwordPrompt = document.getElementById('passwordPrompt');
-        const confirmPassword = document.getElementById('confirmPassword');
-        const downloadOptions = document.getElementById('downloadOptions');
-        const notification = document.getElementById('notification');
-        const downloadCSV = document.getElementById('downloadCSV');
-        const totalCount = document.getElementById('totalCount');
-        const participants = [];
-
-        regForm.addEventListener('submit', function(e) {
+        // Submit registration via AJAX
+        document.getElementById('regForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const name = document.getElementById('name').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const regNumber = document.getElementById('regNumber').value.trim();
-            if (name && email && regNumber) {
-                participants.push({
-                    name,
-                    email,
-                    regNumber
+            const status = document.getElementById('regStatus');
+            status.style.color = 'black';
+            status.textContent = 'Submitting…';
+
+            const formData = new FormData(this);
+            try {
+                const res = await fetch('register.php', {
+                    method: 'POST',
+                    body: formData
                 });
-                regForm.reset();
-                alert('Registered Successfully!');
+                const json = await res.json();
+                if (json.success) {
+                    status.style.color = 'green';
+                    status.textContent = 'Registered successfully!';
+                    this.reset();
+                } else {
+                    throw new Error(json.error || 'Registration failed');
+                }
+            } catch (err) {
+                status.style.color = 'red';
+                status.textContent = err.message;
             }
         });
 
-        viewBtn.addEventListener('click', function() {
-            participantList.innerHTML = '';
-            participants.forEach(p => {
-                const li = document.createElement('li');
-                li.textContent = `${p.name} | ${p.email} | ${p.regNumber}`;
-                participantList.appendChild(li);
-            });
-            totalCount.textContent = participants.length;
-            participantsDiv.style.display = 'block';
+        // Load participants list
+        document.getElementById('viewBtn').addEventListener('click', async function() {
+            try {
+                const res = await fetch('view.php');
+                const data = await res.json();
+                const list = document.getElementById('list');
+                list.innerHTML = '';
+                document.getElementById('count').textContent = data.length;
+                data.forEach(p => {
+                    const li = document.createElement('li');
+                    li.textContent = `${p.name} | ${p.email} | ${p.regNumber}`;
+                    list.appendChild(li);
+                });
+                document.getElementById('participants').style.display = 'block';
+            } catch (err) {
+                alert('Error loading participants: ' + err.message);
+            }
         });
 
-        downloadBtn.addEventListener('click', function() {
-            passwordPrompt.style.display = 'block';
+        // Show password prompt
+        document.getElementById('downloadBtn').addEventListener('click', function() {
+            document.getElementById('passwordPrompt').style.display = 'block';
         });
 
-        confirmPassword.addEventListener('click', function() {
-            const password = document.getElementById('password').value;
-            if (password === 'admin') {
-                downloadOptions.style.display = 'block';
-                notification.textContent = '';
+        // Check password and reveal download link
+        document.getElementById('confirmPassword').addEventListener('click', function() {
+            const pw = document.getElementById('password').value;
+            const notif = document.getElementById('notification');
+            if (pw === 'admin') {
+                notif.textContent = '';
+                const link = document.getElementById('downloadLink');
+                link.href = `download.php?password=${encodeURIComponent(pw)}`;
+                link.textContent = 'Click here to download CSV';
+                document.getElementById('downloadOptions').style.display = 'block';
             } else {
-                notification.textContent = 'Incorrect Password';
-                downloadOptions.style.display = 'none';
+                notif.textContent = 'Incorrect Password';
+                document.getElementById('downloadOptions').style.display = 'none';
             }
-        });
-
-        downloadCSV.addEventListener('click', function() {
-            if (participants.length === 0) {
-                alert('No participants to download');
-                return;
-            }
-            let csvContent = 'Name,Email ID,Register Number\n';
-            participants.forEach(p => {
-                csvContent += `${p.name},${p.email},${p.regNumber}\n`;
-            });
-            const blob = new Blob([csvContent], {
-                type: 'text/csv'
-            });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'participants.csv';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            passwordPrompt.style.display = 'none';
-            downloadOptions.style.display = 'none';
         });
     </script>
 </body>
